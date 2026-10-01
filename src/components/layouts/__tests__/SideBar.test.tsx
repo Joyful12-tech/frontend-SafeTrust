@@ -11,6 +11,18 @@ jest.mock("@/components/auth/LogoutButton", () => ({
   LogoutButton: () => <div data-testid="logout-button" />,
 }));
 
+jest.mock("@/hooks/useCurrentUser", () => ({
+  useCurrentUser: () => ({
+    user: {
+      uid: "test-user-1",
+      email: null,
+      roles: ["guest"],
+      activeRole: "guest",
+    },
+    loading: false,
+  }),
+}));
+
 describe("SideBar", () => {
   beforeEach(() => {
     jest.clearAllMocks();

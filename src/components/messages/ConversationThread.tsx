@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
-import { MOCK_MESSAGES, MOCK_CURRENT_USER } from "@/lib/mockData/messages";
+import { getMessagesForConversation } from "@/lib/mockData/messages";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { MessageBubble } from "./MessageBubble";
 import { AutomatedEventMessage } from "./AutomatedEventMessage";
 import { MessageComposer } from "./MessageComposer";
@@ -34,11 +35,26 @@ export function ConversationThread({
   apartmentId,
 }: ConversationThreadProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
-  const messages = MOCK_MESSAGES[conversationId] ?? [];
+  const { user, loading } = useCurrentUser();
+  const messages = user
+    ? getMessagesForConversation(conversationId, user.uid)
+    : [];
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
+
+  if (loading || !user) {
+    return (
+      <div style={styles.container}>
+        <div style={styles.messageList} aria-busy="true">
+          <div className="h-10 w-48 rounded-xl bg-muted animate-pulse self-start" />
+          <div className="h-10 w-40 rounded-xl bg-muted animate-pulse self-end" />
+          <div className="h-10 w-52 rounded-xl bg-muted animate-pulse self-start" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={styles.container}>
@@ -50,7 +66,7 @@ export function ConversationThread({
             <MessageBubble
               key={message.id}
               message={message}
-              isOwn={message.sender.id === MOCK_CURRENT_USER.uid}
+              isOwn={message.sender.id === user.uid}
             />
           ),
         )}
@@ -59,7 +75,7 @@ export function ConversationThread({
 
       <MessageComposer
         conversationId={conversationId}
-        senderId={MOCK_CURRENT_USER.uid}
+        senderId={user.uid}
         apartmentId={apartmentId}
       />
     </div>

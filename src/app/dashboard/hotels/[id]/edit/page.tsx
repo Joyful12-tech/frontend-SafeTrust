@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { notFound, useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, MapPin, Building2, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -104,39 +104,12 @@ export default function EditHotelPage() {
     "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1";
 
   if (!hotel) {
-    return (
-      <div className="space-y-6 max-w-4xl mx-auto">
-        <Link
-          href="/dashboard/hotels"
-          className="flex items-center gap-2 text-sm
-                     text-gray-400 hover:text-white transition-colors w-fit"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Hotels
-        </Link>
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <Building2 className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Hotel not found
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            The hotel you&apos;re looking for doesn&apos;t exist.
-          </p>
-          <Link
-            href="/dashboard/hotels"
-            className="mt-6 rounded-lg bg-orange-500 hover:bg-orange-600
-                       text-white text-sm font-semibold px-4 py-2 transition-colors"
-          >
-            View all hotels
-          </Link>
-        </div>
-      </div>
-    );
+    // Unknown ids render 404 instead of an "access denied"-style page.
+    notFound();
   }
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
-
       {/* Back */}
       <Link
         href="/dashboard/hotels"
@@ -158,18 +131,18 @@ export default function EditHotelPage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
           {/* ── Left column ── */}
           <div className="space-y-4">
-
             {/* Name */}
             <div>
               <label htmlFor="hotel-name" className={labelClass}>
                 Hotel Name <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2
-                                      h-4 w-4 text-orange-400" />
+                <Building2
+                  className="absolute left-3 top-1/2 -translate-y-1/2
+                                      h-4 w-4 text-orange-400"
+                />
                 <input
                   id="hotel-name"
                   type="text"
@@ -192,8 +165,10 @@ export default function EditHotelPage() {
                 Address <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2
-                                   h-4 w-4 text-orange-400" />
+                <MapPin
+                  className="absolute left-3 top-1/2 -translate-y-1/2
+                                   h-4 w-4 text-orange-400"
+                />
                 <input
                   id="hotel-address"
                   type="text"
@@ -209,7 +184,9 @@ export default function EditHotelPage() {
 
             {/* Location area */}
             <div>
-              <label htmlFor="hotel-location-area" className={labelClass}>Location Area</label>
+              <label htmlFor="hotel-location-area" className={labelClass}>
+                Location Area
+              </label>
               <input
                 id="hotel-location-area"
                 type="text"
@@ -224,7 +201,9 @@ export default function EditHotelPage() {
             {/* Coordinates */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label htmlFor="hotel-latitude" className={labelClass}>Latitude</label>
+                <label htmlFor="hotel-latitude" className={labelClass}>
+                  Latitude
+                </label>
                 <input
                   id="hotel-latitude"
                   type="number"
@@ -236,7 +215,9 @@ export default function EditHotelPage() {
                 />
               </div>
               <div>
-                <label htmlFor="hotel-longitude" className={labelClass}>Longitude</label>
+                <label htmlFor="hotel-longitude" className={labelClass}>
+                  Longitude
+                </label>
                 <input
                   id="hotel-longitude"
                   type="number"
@@ -251,20 +232,20 @@ export default function EditHotelPage() {
             <p className="text-xs text-gray-400 -mt-2">
               PostGIS coordinates — default is San José, Costa Rica center
             </p>
-
           </div>
 
           {/* ── Right column ── */}
           <div className="space-y-4">
-
             {/* Description */}
             <div>
               <label htmlFor="hotel-description" className={labelClass}>
                 Description
               </label>
               <div className="relative">
-                <FileText className="absolute left-3 top-3
-                                     h-4 w-4 text-orange-400" />
+                <FileText
+                  className="absolute left-3 top-3
+                                     h-4 w-4 text-orange-400"
+                />
                 <textarea
                   id="hotel-description"
                   maxLength={50}
@@ -281,15 +262,21 @@ export default function EditHotelPage() {
             </div>
 
             {/* Schema note */}
-            <div className="rounded-lg border border-blue-200
+            <div
+              className="rounded-lg border border-blue-200
                             dark:border-blue-800 bg-blue-50
-                            dark:bg-blue-900/10 p-4 space-y-1">
-              <p className="text-xs font-semibold text-blue-600
-                             dark:text-blue-400">
+                            dark:bg-blue-900/10 p-4 space-y-1"
+            >
+              <p
+                className="text-xs font-semibold text-blue-600
+                             dark:text-blue-400"
+              >
                 Schema constraints (public.hotels)
               </p>
-              <ul className="text-xs text-blue-500 dark:text-blue-400
-                              space-y-0.5 list-disc list-inside">
+              <ul
+                className="text-xs text-blue-500 dark:text-blue-400
+                              space-y-0.5 list-disc list-inside"
+              >
                 <li>name — max 20 characters, required</li>
                 <li>description — max 50 characters</li>
                 <li>address — max 50 characters, required</li>
@@ -297,13 +284,14 @@ export default function EditHotelPage() {
                 <li>coordinates — PostGIS Point (longitude, latitude)</li>
               </ul>
             </div>
-
           </div>
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-end gap-3 pt-4
-                        border-t border-gray-200 dark:border-slate-700">
+        <div
+          className="flex items-center justify-end gap-3 pt-4
+                        border-t border-gray-200 dark:border-slate-700"
+        >
           <Link
             href="/dashboard/hotels"
             className="px-6 py-2.5 rounded-lg border border-gray-200

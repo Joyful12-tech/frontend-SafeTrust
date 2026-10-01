@@ -13,30 +13,7 @@ import {
 import { PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-
-const STUB_ESCROWS = [
-  {
-    id: "abc-123",
-    property: "La sabana apartment",
-    amount: 4000,
-    status: "PENDING" as const,
-    createdAt: "2025-01-20",
-  },
-  {
-    id: "def-456",
-    property: "Casa verde downtown",
-    amount: 2500,
-    status: "ACTIVE" as const,
-    createdAt: "2025-01-15",
-  },
-  {
-    id: "ghi-789",
-    property: "Playa escazú suite",
-    amount: 6000,
-    status: "COMPLETED" as const,
-    createdAt: "2025-01-10",
-  },
-];
+import { STUB_ESCROWS } from "@/lib/mockData/escrows";
 
 const FILTER_TABS = [
   "All",
@@ -116,8 +93,12 @@ export default function EscrowPage() {
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50 dark:bg-slate-700 border-b border-gray-200 dark:border-slate-700">
-                <TableHead className="w-[100px] min-w-[100px] text-gray-600 dark:text-gray-300 font-semibold">ID</TableHead>
-                <TableHead className="min-w-[200px] text-gray-600 dark:text-gray-300 font-semibold">Property</TableHead>
+                <TableHead className="w-[100px] min-w-[100px] text-gray-600 dark:text-gray-300 font-semibold">
+                  ID
+                </TableHead>
+                <TableHead className="min-w-[200px] text-gray-600 dark:text-gray-300 font-semibold">
+                  Property
+                </TableHead>
                 <TableHead className="w-[120px] min-w-[120px] text-gray-600 dark:text-gray-300 font-semibold">
                   Amount
                 </TableHead>
@@ -141,7 +122,10 @@ export default function EscrowPage() {
                 </TableRow>
               ) : (
                 filteredEscrows.map((escrow) => (
-                  <TableRow key={escrow.id} className="overflow-scroll border-b border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700/50">
+                  <TableRow
+                    key={escrow.id}
+                    className="overflow-scroll border-b border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700/50"
+                  >
                     <TableCell className="font-mono text-sm text-gray-500 dark:text-gray-400">
                       {escrow.id.slice(0, 8)}...
                     </TableCell>
@@ -182,9 +166,9 @@ export default function EscrowPage() {
             results
           </div>
           <div className="flex items-center space-x-1">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               disabled
               className="bg-white border-gray-300 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-400"
             >
@@ -197,25 +181,25 @@ export default function EscrowPage() {
             >
               1
             </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               disabled
               className="bg-white border-gray-300 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-400"
             >
               2
             </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               disabled
               className="bg-white border-gray-300 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-400"
             >
               3
             </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               disabled
               className="bg-white border-gray-300 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-400"
             >

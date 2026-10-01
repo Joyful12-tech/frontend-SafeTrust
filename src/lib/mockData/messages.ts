@@ -4,6 +4,13 @@ export const MOCK_CURRENT_USER = {
   last_name: "User",
 };
 
+/**
+ * The uid stored on mock data as the guest side of every stub conversation.
+ * App code must never treat this as the signed-in user — it only exists so
+ * per-user generation below can rewrite ownership to the real uid.
+ */
+export const MOCK_GUEST_ID = MOCK_CURRENT_USER.uid;
+
 export const MOCK_CONVERSATIONS = [
   {
     id: "conv-1",
@@ -516,3 +523,40 @@ export const MOCK_MESSAGES: Record<string, MockMessage[]> = {
     },
   ],
 };
+
+/**
+ * Skeleton-mode conversation generation for a signed-in user (FE-45):
+ * every stub conversation is owned by `uid`, so two users never share the
+ * same guest identity and ownership checks can be enforced per-user.
+ */
+export function getConversationsForUser(
+  uid: string,
+): (typeof MOCK_CONVERSATIONS)[number][] {
+  return MOCK_CONVERSATIONS.map((conversation) => ({
+    ...conversation,
+    guest: { ...conversation.guest, id: uid },
+  }));
+}
+
+/** Whether `uid` participates in the conversation (guest or host side). */
+export function isConversationParticipant(
+  conversation: (typeof MOCK_CONVERSATIONS)[number],
+  uid: string,
+): boolean {
+  return conversation.guest.id === uid || conversation.host.id === uid;
+}
+
+/**
+ * Messages of a conversation with the guest-side sender rewritten to `uid`,
+ * so "own message" rendering is derived from the verified identity.
+ */
+export function getMessagesForConversation(
+  conversationId: string,
+  uid: string,
+): MockMessage[] {
+  return (MOCK_MESSAGES[conversationId] ?? []).map((message) =>
+    message.sender.id === MOCK_GUEST_ID
+      ? { ...message, sender: { ...message.sender, id: uid } }
+      : message,
+  );
+}

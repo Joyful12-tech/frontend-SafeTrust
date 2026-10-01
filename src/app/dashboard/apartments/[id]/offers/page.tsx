@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, notFound } from "next/navigation";
 // import { useSuspenseQuery } from "@apollo/client";
 import { ArrowLeft, MapPin, Bed, PawPrint, Bath } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { InterestedPeopleTable } from "@/components/dashboard/apartments/InterestedPeopleTable";
+import { MOCK_APARTMENTS } from "@/lib/mockData/apartments";
 // TODO: Uncomment after running `npm run codegen` with Hasura running
 // import {
 //   GET_APARTMENT_BY_ID,
@@ -26,20 +26,28 @@ export default function InterestedPeoplePage() {
   //   variables: { apartment_id: apartmentId, order_by: [{ offer_date: "desc" }] },
   // });
 
-  // Temporary stub data until GraphQL is set up
-  const apartmentData = {
-    apartments_by_pk: {
-      id: apartmentId,
-      name: "La sabana house",
-      location: "San José",
-      address: "329 Calle Santos, Paseo Colón, San José",
-      bedrooms: 2,
-      bathrooms: 1,
-      price: 4058.0,
-      status: "not_inhabited",
-      promoted: true,
-    },
-  };
+  // Temporary stub data until GraphQL is set up. Existence is gated on the
+  // user's apartment data source, so unknown ids (and, once BE-03 filters by
+  // owner, other users' ids) render 404 instead of fabricated content.
+  const apartmentExists = MOCK_APARTMENTS.some(
+    (a) => a.id === String(params.id),
+  );
+
+  const apartmentData = apartmentExists
+    ? {
+        apartments_by_pk: {
+          id: apartmentId,
+          name: "La sabana house",
+          location: "San José",
+          address: "329 Calle Santos, Paseo Colón, San José",
+          bedrooms: 2,
+          bathrooms: 1,
+          price: 4058.0,
+          status: "not_inhabited",
+          promoted: true,
+        },
+      }
+    : null;
 
   const offersData = {
     rental_offers: Array(10)
@@ -51,7 +59,11 @@ export default function InterestedPeoplePage() {
         tenant_phone: "+506 6483252",
         tenant_wallet_address: "XR6...32D",
         offer_date: new Date(2024, 8, 12 + i).toISOString(),
-        bid_status: (i === 1 ? "accepted" : i === 5 ? "rejected" : "pending") as RentalOffer["bid_status"],
+        bid_status: (i === 1
+          ? "accepted"
+          : i === 5
+            ? "rejected"
+            : "pending") as RentalOffer["bid_status"],
       })),
     rental_offers_aggregate: { aggregate: { count: 10 } },
   };
@@ -63,22 +75,7 @@ export default function InterestedPeoplePage() {
 
   const apartment = apartmentData?.apartments_by_pk;
   const offers = offersData?.rental_offers || [];
-  const totalCount =
-    offersData?.rental_offers_aggregate?.aggregate?.count || 0;
-
-  // Handle invalid apartment ID
-  useEffect(() => {
-    if (!apartmentId || isNaN(apartmentId)) {
-      router.push("/dashboard/apartments");
-    }
-  }, [apartmentId, router]);
-
-  // Handle apartment not found
-  useEffect(() => {
-    if (!apartmentLoading && !apartment && !apartmentError) {
-      router.push("/dashboard/apartments");
-    }
-  }, [apartment, apartmentLoading, apartmentError, router]);
+  const totalCount = offersData?.rental_offers_aggregate?.aggregate?.count || 0;
 
   if (apartmentLoading || offersLoading) {
     return (
@@ -109,12 +106,16 @@ export default function InterestedPeoplePage() {
   }
 
   if (!apartment) {
-    return null;
+    // Unknown or foreign apartment id — show 404, not someone else's data.
+    notFound();
   }
 
   const mappedOffers: RentalOffer[] = offers.map((offer) => ({
     id: offer.id,
-    tenant_id: ("tenant_id" in offer && typeof offer.tenant_id === "string") ? offer.tenant_id : null,
+    tenant_id:
+      "tenant_id" in offer && typeof offer.tenant_id === "string"
+        ? offer.tenant_id
+        : null,
     tenant_name: offer.tenant_name,
     tenant_phone: offer.tenant_phone ?? null,
     tenant_wallet_address: offer.tenant_wallet_address ?? null,
@@ -164,7 +165,8 @@ export default function InterestedPeoplePage() {
                 <Bed className="h-4 w-4 text-orange-500" />
                 {apartment.bedrooms} bd.
               </span>
-              {(apartment as unknown as { pet_friendly?: boolean }).pet_friendly !== false && (
+              {(apartment as unknown as { pet_friendly?: boolean })
+                .pet_friendly !== false && (
                 <span className="flex items-center gap-1">
                   <PawPrint className="h-4 w-4 text-orange-500" />
                   pet friendly

@@ -6,11 +6,8 @@ import type {
   EscrowData,
   NotificationData,
 } from "@/components/dashboard/RoleEscrowDashboard";
-import {
-  fetchMockEscrows,
-  generateMockNotifications,
-} from "@/lib/mockData";
-import { getUserRole } from "@/utils/role-utils";
+import { fetchMockEscrows, generateMockNotifications } from "@/lib/mockData";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 // Dynamic import: RoleEscrowDashboard (chart libraries, escrow component tree,
 // mock data generators) loads in a separate chunk only when this route is
@@ -33,11 +30,14 @@ const RoleEscrowDashboard = dynamic(
         <div className="h-64 rounded-xl bg-muted animate-pulse" />
       </div>
     ),
-  }
+  },
 );
 
+type DashboardRole = "guest" | "hotel" | "admin";
+
 export function RoleEscrowDashboardPage() {
-  const [userRole, setUserRole] = useState<"guest" | "hotel" | "admin">("guest");
+  const { user } = useCurrentUser();
+  const [hostView, setHostView] = useState<boolean | null>(null);
   const [escrows, setEscrows] = useState<EscrowData[]>([]);
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -47,8 +47,6 @@ export function RoleEscrowDashboardPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const role = getUserRole();
-      setUserRole(role ?? "guest");
       const escrowData = await fetchMockEscrows();
       setEscrows(escrowData);
       setNotifications(generateMockNotifications(escrowData));
@@ -63,14 +61,41 @@ export function RoleEscrowDashboardPage() {
     loadData();
   }, [loadData]);
 
+  // Role comes from verified ID-token claims, never from localStorage.
+  const canHost = user?.roles.includes("host") ?? false;
+  const isAdmin = user?.activeRole === "admin";
+  const prefersHost = hostView ?? user?.activeRole === "host";
+  const userRole: DashboardRole = isAdmin
+    ? "admin"
+    : canHost && prefersHost
+      ? "hotel"
+      : "guest";
+
+  const showHostToggle = canHost && !isAdmin;
+
   return (
-    <RoleEscrowDashboard
-      userRole={userRole}
-      escrows={escrows}
-      notifications={notifications}
-      isLoading={isLoading}
-      error={error}
-      onRefresh={loadData}
-    />
+    <div className="space-y-4">
+      {showHostToggle && (
+        <div className="flex justify-end p-4 pb-0">
+          <button
+            type="button"
+            onClick={() => setHostView(userRole !== "hotel")}
+            className="rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+          >
+            {userRole === "hotel"
+              ? "Switch to Guest view"
+              : "Switch to Host view"}
+          </button>
+        </div>
+      )}
+      <RoleEscrowDashboard
+        userRole={userRole}
+        escrows={escrows}
+        notifications={notifications}
+        isLoading={isLoading}
+        error={error}
+        onRefresh={loadData}
+      />
+    </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, notFound } from "next/navigation";
 import { useEscrowSubscription } from "@/hooks/useEscrowSubscription";
 import {
   EscrowBlockedView,
@@ -23,6 +23,11 @@ export default function HotelEscrowDetailPage() {
 
   const isAwaitingSubscription = subscription.loading && !subscription.escrow;
 
+  // The data source returned nothing for this id (and nothing went wrong):
+  // unknown or foreign escrow ids render 404 so existence isn't revealed.
+  const isMissing =
+    !subscription.loading && !subscription.error && !subscription.escrow;
+
   const effectiveStatus = subscription.escrow?.status ?? stub.status;
   const view = getViewForStatus(effectiveStatus);
   const data = useMemo(
@@ -36,6 +41,10 @@ export default function HotelEscrowDetailPage() {
       router.replace(`/rent/${hotelId}/escrow/create`);
     }
   }, [view, hotelId, router, isAwaitingSubscription]);
+
+  if (isMissing) {
+    notFound();
+  }
 
   if (isAwaitingSubscription) {
     return (
