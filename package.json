@@ -58,6 +58,7 @@
     "firebase": "^12.12.1",
     "graphql": "^16.11.0",
     "i18next": "^24.2.3",
+    "jose": "^5.10.0",
     "js-cookie": "^3.0.8",
     "leaflet": "^1.9.4",
     "leaflet-defaulticon-compatibility": "^0.1.2",

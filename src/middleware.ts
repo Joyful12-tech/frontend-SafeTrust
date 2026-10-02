@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getRolesFromClaims, verifyIdToken } from "@/lib/auth/verify-id-token";
 
 const PROTECTED_PREFIXES = ["/dashboard", "/guest", "/bookings"];
 
 const PROTECTED_PATTERNS = [/^\/hotels\/[^/]+\/book(\/.*)?$/];
+
+const HOST_ONLY_PREFIXES = ["/dashboard/hotels", "/dashboard/apartments"];
 
 const PUBLIC_PATHS = new Set([
   "/",
@@ -50,10 +53,15 @@ function isProtected(pathname: string): boolean {
 }
 
 /**
- * Enforces the lightweight Edge-compatible Firebase cookie check for protected routes.
- * Token signature verification remains in the server-side authentication boundary.
+ * Verifies the Firebase ID token in the Edge runtime (jose, no Admin SDK) and
+ * derives the request's authorization from the verified claims only.
+ *
+ * - Missing, forged, expired or wrong-project token → redirect to /login and
+ *   clear the stale cookie.
+ * - Host-only areas require a `host` or `admin` role in the verified Hasura
+ *   claims; everyone else gets the /403 page (via rewrite, so the URL stays).
  */
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   if (process.env.NEXT_PUBLIC_SKIP_AUTH_MIDDLEWARE === "true") {
     return NextResponse.next();
   }
@@ -64,17 +72,33 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Firebase Admin cannot run in Next.js Edge middleware. The token is
-  // verified server-side by the auth API, while middleware checks presence.
   const token = req.cookies.get("firebase-token")?.value;
+  const claims = token ? await verifyIdToken(token) : null;
 
-  if (!token) {
+  if (!claims) {
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("redirect", `${pathname}${search}`);
-    return NextResponse.redirect(loginUrl);
+    const res = NextResponse.redirect(loginUrl);
+    // Drop invalid or expired cookies so the browser stops replaying them.
+    if (token) res.cookies.delete("firebase-token");
+    return res;
+  }
+
+  // Host-only areas: role comes from verified claims, never from the client.
+  if (isHostOnly(pathname)) {
+    const roles = getRolesFromClaims(claims);
+    if (!roles.includes("host") && !roles.includes("admin")) {
+      return NextResponse.rewrite(new URL("/403", req.url));
+    }
   }
 
   return NextResponse.next();
+}
+
+function isHostOnly(pathname: string): boolean {
+  return HOST_ONLY_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
 }
 
 export const config = {

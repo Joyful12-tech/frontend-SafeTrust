@@ -2,7 +2,12 @@
 
 import { use } from "react";
 import dynamic from "next/dynamic";
-import { MOCK_CONVERSATIONS } from "@/lib/mockData/messages";
+import { notFound } from "next/navigation";
+import {
+  getConversationsForUser,
+  isConversationParticipant,
+} from "@/lib/mockData/messages";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 const ConversationThread = dynamic(
   () =>
@@ -39,7 +44,21 @@ export default function ConversationPage({
   params: Promise<{ conversationId: string }>;
 }) {
   const { conversationId } = use(params);
-  const conversation = MOCK_CONVERSATIONS.find((c) => c.id === conversationId);
+  const { user, loading } = useCurrentUser();
+
+  const conversation = user
+    ? getConversationsForUser(user.uid).find((c) => c.id === conversationId)
+    : undefined;
+
+  // Unknown or foreign conversation ids render 404 so the page never reveals
+  // that an id exists for someone else.
+  if (
+    !loading &&
+    user &&
+    (!conversation || !isConversationParticipant(conversation, user.uid))
+  ) {
+    notFound();
+  }
 
   return (
     <div className="h-full flex flex-col">

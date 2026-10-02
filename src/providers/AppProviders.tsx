@@ -5,6 +5,7 @@ import { ThemeProvider } from "next-themes";
 import { ApolloClientProvider } from "@/providers/ApolloProviderWrapper";
 import { WalletProvider } from "@/components/tw-blocks/wallet-kit/WalletProvider";
 import { Toaster } from "@/components/ui/sonner";
+import { FirebaseSessionSync } from "@/components/auth/FirebaseSessionSync";
 import { QueryProvider } from "./QueryProvider";
 
 export function AppProviders({ children }: { children: ReactNode }) {
@@ -13,6 +14,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
       <ApolloClientProvider>
         <QueryProvider>
           <WalletProvider>
+            <FirebaseSessionSync />
             {children}
             <Toaster richColors position="top-right" />
           </WalletProvider>

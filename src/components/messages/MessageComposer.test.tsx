@@ -18,7 +18,7 @@ describe("MessageComposer", () => {
     render(
       <MessageComposer
         conversationId="conv-1"
-        senderId="mock-guest-1"
+        senderId="test-user-1"
         apartmentId="mock-apartment-1"
       />,
     );
@@ -28,7 +28,9 @@ describe("MessageComposer", () => {
     fireEvent.keyDown(input, { key: "Enter", shiftKey: false });
 
     await waitFor(() => {
-      expect(toastSuccess).toHaveBeenCalledWith("Message sent! (skeleton mode)");
+      expect(toastSuccess).toHaveBeenCalledWith(
+        "Message sent! (skeleton mode)",
+      );
     });
     expect(input).toHaveValue("");
   });
@@ -37,7 +39,7 @@ describe("MessageComposer", () => {
     render(
       <MessageComposer
         conversationId="conv-1"
-        senderId="mock-guest-1"
+        senderId="test-user-1"
         apartmentId="mock-apartment-1"
       />,
     );

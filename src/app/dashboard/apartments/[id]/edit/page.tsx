@@ -1,21 +1,11 @@
 "use client";
 
 import { use } from "react";
-import { useRouter } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { NewApartmentForm } from
-  "@/components/dashboard/apartments/NewApartmentForm";
-
-// TODO: replace with Hasura query → public.apartments WHERE id = $id
-const STUB_APARTMENT = {
-  id: "1",
-  name: "La Sabana Sur Studio",
-  location: "San José",
-  price: 1200,
-  status: "inhabited",
-  promoted: true,
-};
+import { NewApartmentForm } from "@/components/dashboard/apartments/NewApartmentForm";
+import { MOCK_APARTMENTS } from "@/lib/mockData/apartments";
 
 export default function EditApartmentPage({
   params,
@@ -24,6 +14,18 @@ export default function EditApartmentPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+
+  // The data source only contains the user's apartments; unknown ids (and,
+  // once BE-03 filters by owner, other users' ids) render 404.
+  const apartment = MOCK_APARTMENTS.find((a) => a.id === id);
+  if (!apartment) {
+    notFound();
+  }
+
+  const initialData = {
+    name: apartment.name,
+    location: apartment.location,
+  };
 
   const handleSubmit = () => {
     // TODO: wire to Hasura mutation → UPDATE public.apartments WHERE id = $id
@@ -50,13 +52,11 @@ export default function EditApartmentPage({
         </p>
       </div>
 
-      {/* Reuse NewApartmentForm with pre-filled stub data */}
-      {/* TODO: pass real apartment data once Hasura query is wired */}
       <NewApartmentForm
-        initialData={STUB_APARTMENT}
-        onSubmit={handleSubmit} 
+        initialData={initialData}
+        onSubmit={handleSubmit}
         title="Edit apartment"
-        submitLabel="Save changes" 
+        submitLabel="Save changes"
       />
     </div>
   );

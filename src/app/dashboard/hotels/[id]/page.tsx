@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 import { ArrowLeft, Building2, MapPin } from "lucide-react";
 
 // TODO: replace with Hasura query → public.hotels
@@ -33,35 +33,9 @@ export default function HotelDetailPage() {
   const params = useParams();
   const hotel = STUB_HOTELS.find((h) => h.id === params.id);
 
+  // Unknown (or, once BE-03 filters by owner, foreign) ids must render 404.
   if (!hotel) {
-    return (
-      <div className="space-y-6">
-        <Link
-          href="/dashboard/hotels"
-          className="flex items-center gap-2 text-sm
-                     text-gray-400 hover:text-white transition-colors w-fit"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Hotels
-        </Link>
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <Building2 className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Hotel not found
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            The hotel you&apos;re looking for doesn&apos;t exist.
-          </p>
-          <Link
-            href="/dashboard/hotels"
-            className="mt-6 rounded-lg bg-orange-500 hover:bg-orange-600
-                       text-white text-sm font-semibold px-4 py-2 transition-colors"
-          >
-            View all hotels
-          </Link>
-        </div>
-      </div>
-    );
+    notFound();
   }
 
   return (
@@ -84,8 +58,10 @@ export default function HotelDetailPage() {
         </p>
       </div>
 
-      <div className="rounded-xl border border-gray-200 dark:border-slate-700
-                      bg-white dark:bg-slate-900 overflow-hidden">
+      <div
+        className="rounded-xl border border-gray-200 dark:border-slate-700
+                      bg-white dark:bg-slate-900 overflow-hidden"
+      >
         <div className="p-6 space-y-6">
           {/* Name */}
           <div className="flex items-start gap-3">
